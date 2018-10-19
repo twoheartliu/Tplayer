@@ -13,4 +13,4 @@
 
 ## LICENSE
 
-MIT © [DIYgod](http://github.com/twoheartliu)
+MIT © [twoheart](http://github.com/twoheartliu)
