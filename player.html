@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .box {
+            width: 500px;
+            background: #EEF5F1;
+        }
+
+        .list {
+            cursor: pointer;
+        }
+
+        .highlight {
+            background: lightcoral;
+        }
+
+        .model-on {
+            background: rgb(18, 155, 77);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <audio id="id-audio-player" controls="controls" src="1.mp3"></audio>
+        <br>
+        <span id="current-time"></span>
+        <span>/</span>
+        <span id="total-time"></span>
+        <br>
+        <div class="list">
+            <div class="item" data-path="1.mp3">Love Train</div>
+            <div class="item" data-path="2.mp3">Far Horizon</div>
+            <div class="item" data-path="3.mp3">Moongazer</div>
+        </div>
+        <br>
+        <button id="button-play">play</button>
+        <button id="button-pause">pause</button>
+        <br>
+        <!-- <button id="button-repeat">单曲循环</button> -->
+        <!-- <button id="button-loop">列表循环</button> -->
+    </div>
+
+    <script>
+        const log = console.log.bind(console)
+
+        const e = selector => document.querySelector(selector)
+
+        const es = selector => document.querySelectorAll(selector)
+
+        const bindEvent = (element, eventName, callback) => {
+            element.addEventListener(eventName, callback)
+        }
+
+        const bindAll = (elements, eventName, callback) => {
+            for (var i = 0; i < elements.length; i++) {
+                var e = elements[i]
+                bindEvent(e, eventName, callback)
+            }
+        }
+
+        const bindPlay = () => {
+            var playButton = e('#button-play')
+            bindEvent(playButton, 'click', () => {
+                log('clicked play')
+                var player = e('audio')
+                player.play()
+            })
+        }
+
+        const bindPause = () => {
+            var pauseButton = e('#button-pause')
+            bindEvent(pauseButton, 'click', () => {
+                log('clicked pause')
+                var player = e('audio')
+                player.pause()
+            })
+        }
+
+        const bindSong = () => {
+            var song = es('.item')
+            bindAll(song, 'click', (event) => {
+                log('clicked')
+                var self = event.target
+                addHighlight(self)
+                var path = self.dataset.path
+                log('path', path)
+
+                var player = e('audio')
+                player.src = path
+                bindEvent(player, 'canplay', () => {
+                    player.play()
+                })
+            })
+        }
+
+        const bindRepeat = () => {
+            var repeatButton = e('#button-repeat')
+            bindEvent(repeatButton, 'click', () => {
+                log('clicked repeat')
+                modelOn(repeatButton)
+                var player = e('audio')
+                bindEvent(player, 'ended', () => {
+                    player.play()
+                })
+            })
+        }
+
+        const bindLoop = () => {
+            var loopButton = e('#button-loop')
+            var player = e('audio')
+            var songs = [
+                '1.mp3',
+                '2.mp3',
+                '3.mp3',
+            ]
+            var src = player.src.slice(-5)
+            var index = songs.indexOf(src)
+            var next = (index + 1 + songs.length) % songs.length
+            log('next', next)
+            bindEvent(player, 'ended', () => {
+                player.src = songs[next]
+                player.play()
+            })
+
+        }
+
+        const bindRandom = () => {
+            var songs = [
+                '1.mp3',
+                '2.mp3',
+                '3.mp3',
+            ]
+            var r = choice(songs)
+            log('r', r)
+
+            var next = songs[r]
+            log('next', next)
+            var player = e('audio')
+            bindEvent(player, 'ended', () => {
+                player.src = next
+                player.play()
+            })
+        }
+
+        const choice = (array) => {
+            var random = Math.random()
+            log('random', random)
+            if (random < 0.333) {
+                random = 0
+            } else if (random > 0.333 || random < 0.666) {
+                random = 1
+            } else {
+                random = 2
+            }
+            return random
+        }
+
+        // const modelOn = (element) => {
+        //     var old = e('.model-on')
+        //     if (old == null) {
+        //         element.classList.add('model-on')
+        //     } else {
+        //         old.classList.remove('model-on')
+        //         element.classList.add('model-on')
+        //     }
+        // }
+
+        const addHighlight = (element) => {
+            var old = e('.highlight')
+            if (old == null) {
+                element.classList.add('highlight')
+            } else {
+                old.classList.remove('highlight')
+                element.classList.add('highlight')
+            }
+        }
+
+        const currentTime = () => {
+            var player = e('audio')
+            var t = player.currentTime
+            var formatTime = transTime(t)
+
+            var now = e('#current-time')
+            now.innerHTML = formatTime
+        }
+
+        const durationTime = () => {
+            var player = e('audio')
+            player.addEventListener('canplay', () => {
+                var t = player.duration
+
+                var formatTime = transTime(t)
+                var total = e('#total-time')
+                total.innerHTML = formatTime
+            })
+        }
+
+        const transTime = (secs) => {
+            var min = Math.floor(secs / 60)
+            var sec = parseInt(secs - (min * 60))
+
+            var result = ""
+            if (sec < 10) {
+                if (min < 10) {
+                    result = "0" + min + ":0" + sec % 60 + "";
+                } else {
+                    result = "" + min + ":0" + sec % 60 + "";
+                }
+            } else {
+                if (min < 10) {
+                    result = "0" + min + ":" + sec % 60 + "";
+                } else {
+                    result = "" + min + ":" + sec % 60 + "";
+                }
+            }
+            return result
+        }
+
+        const binds = () => {
+            bindPlay()
+            bindPause()
+            bindSong()
+            // bindRepeat()
+            // bindLoop()
+            bindRandom()
+        }
+
+        const showTime = () => {
+            setInterval(() => currentTime(), 100)
+            durationTime()
+        }
+
+        const __main = () => {
+            binds()
+            showTime()
+        }
+
+        __main()
+    </script>
+</body>
+
+</html>
